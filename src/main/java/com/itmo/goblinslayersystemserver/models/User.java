@@ -1,42 +1,40 @@
 package com.itmo.goblinslayersystemserver.models;
 
-import lombok.Getter;
-import lombok.NonNull;
-import lombok.Setter;
+import com.itmo.goblinslayersystemserver.models.enums.AdventurerRank;
+import com.itmo.goblinslayersystemserver.models.enums.AdventurerStatus;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 import javax.persistence.*;
-import javax.validation.constraints.Positive;
+import java.util.List;
 
+@EqualsAndHashCode(callSuper = true)
 @Entity
 @Table(name = "users")
-public class User {
-
+@Data
+public class User extends BaseEntity {
     /**
-     * ID пользователя
+     * Username пользователя
      **/
-    @Id @Positive @GeneratedValue(strategy= GenerationType.AUTO)
-    private Integer id;
-
-    /**
-     * Login пользователя
-     **/
-    @NonNull
-    private String login;
+    @Column(name="username")
+    private String username;
 
     /**
      * Пароль пользователя
      **/
+    @Column(name="password")
     private String password;
 
     /**
      * ФИО пользователя
      **/
-    @NonNull
+    @Column(name="name")
     private String name;
 
     /**
      * Адрес проживания пользователя
      **/
+    @Column(name="address")
     private String address;
 
     /**
@@ -47,14 +45,18 @@ public class User {
      * Регистратор гильдии;
      * Распорядитель рангов.
      **/
-    @Enumerated(EnumType.STRING) @NonNull
-    private Role role;
+    @JoinTable(name = "user_roles",
+            joinColumns = {@JoinColumn(name = "user_id", referencedColumnName = "id")},
+            inverseJoinColumns = {@JoinColumn(name = "role_id", referencedColumnName = "id")})
+    @ElementCollection(targetClass=Role.class)
+    @ManyToMany(fetch = FetchType.EAGER)
+    private List<Role> roles;
 
     /**
      * Флаг блокировки пользователя (true - пользователь заблокирован, false - пользователь разблокирован)
      **/
-    @Getter @Setter
-    private boolean isBlocked;
+    @Column(name="blocked")
+    private boolean blocked;
 
     /**
      * Если пользоваель авантюрист.
@@ -63,12 +65,14 @@ public class User {
      * Мертв;
      * Не подтвержден.
      **/
+    @Column(name="adventurer_status")
     @Enumerated(EnumType.STRING)
     private AdventurerStatus adventurerStatus;
 
     /**
      * Количество очков опыта авнюриста
      **/
+    @Column(name="adventurer_experience")
     private Integer adventurerExperience;
 
     /**
@@ -84,86 +88,37 @@ public class User {
      * Обсидиан;
      * Фарфор.
      **/
+    @Column(name="adventurer_rank")
     @Enumerated(EnumType.STRING)
     private AdventurerRank adventurerRank;
 
-    public Integer getId() {
-        return id;
-    }
+    /**
+     * Причина становления авантюристом.
+     */
+    @Column(name = "adventurer_reason")
+    private String adventurerReason;
 
-    public void setId(Integer id) {
-        this.id = id;
-    }
+    @OneToMany(mappedBy = "adventurer",
+            targetEntity=RankHistory.class,
+            cascade = CascadeType.ALL,
+            orphanRemoval = true,
+            fetch = FetchType.LAZY)
+    private List<RankHistory> rankHistories;
 
-    public String getLogin() {
-        return login;
-    }
-
-    public void setLogin(String login) {
-        this.login = login;
-    }
-
-    public String getPassword() {
-        return password;
-    }
-
-    public void setPassword(String password) {
-        this.password = password;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public String getAddress() {
-        return address;
-    }
-
-    public void setAddress(String address) {
-        this.address = address;
-    }
-
-    public Role getRole() {
-        return role;
-    }
-
-    public void setRole(Role role) {
-        this.role = role;
-    }
-
-    public boolean isBlocked() {
-        return isBlocked;
-    }
-
-    public void setBlocked(boolean blocked) {
-        isBlocked = blocked;
-    }
-
-    public AdventurerStatus getAdventurerStatus() {
-        return adventurerStatus;
-    }
-
-    public void setAdventurerStatus(AdventurerStatus adventurerStatus) {
-        this.adventurerStatus = adventurerStatus;
-    }
-
-    public Integer getAdventurerExperience() {
-        return adventurerExperience;
-    }
-
-    public void setAdventurerExperience(Integer adventurerExperience) {
-        this.adventurerExperience = adventurerExperience;
-    }
-
-    public AdventurerRank getAdventurerRank() {
-        return adventurerRank;
-    }
-
-    public void setAdventurerRank(AdventurerRank adventurerRank) {
-        this.adventurerRank = adventurerRank;
+    @Override
+    public String toString() {
+        return "User{" +
+                "username='" + username + '\'' +
+                ", password='" + "*****" + '\'' +
+                ", name='" + name + '\'' +
+                ", address='" + address + '\'' +
+                ", roles=" + roles +
+                ", blocked=" + blocked +
+                ", adventurerStatus=" + adventurerStatus +
+                ", adventurerExperience=" + adventurerExperience +
+                ", adventurerRank=" + adventurerRank +
+                ", adventurerReason='" + adventurerReason + '\'' +
+                ", rankHistories=" + rankHistories +
+                '}';
     }
 }
